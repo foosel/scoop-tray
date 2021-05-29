@@ -22,3 +22,13 @@ scoop install scoop-tray
 ## Autostart
 
 Create a shortcut in `shell:startup` targeting `scoop-tray.bat`.
+
+## Screenshots
+
+![Systray Icon](https://github.com/foosel/scoop-tray/raw/main/assets/systrayicon.png)
+
+![Available updates](https://github.com/foosel/scoop-tray/raw/main/assets/updates.png)
+
+![Context menu with options to run status, update and exit](https://github.com/foosel/scoop-tray/raw/main/assets/contextmenu.png)
+
+![Notification](https://github.com/foosel/scoop-tray/raw/main/assets/notification.png)
