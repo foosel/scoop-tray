@@ -34,21 +34,7 @@ $MenuItemStatus.add_Click({
 $MenuItemUpdate.Text = "Update..."
 $MenuItemUpdate.Enabled = $False
 $MenuItemUpdate.add_Click({
-    switch ($State) {
-        "scoop_and_app_updates" {
-            Start-Process "cmd" -ArgumentList "/c scoop update && scoop update * && pause"
-        }
-        "scoop_update" {
-            Start-Process "cmd" -ArgumentList "/c scoop update && pause"
-        }
-        "app_updates" {
-            Start-Process "cmd" -ArgumentList "/c scoop update * && pause"
-        }
-        default {
-            Start-Process "cmd" -ArgumentList "/c scoop status * && pause"
-        }
-    }
-    
+    Start-Process "cmd" -ArgumentList "/c scoop update && scoop update * && pause"
 })
 
 $MenuItemExit.Text = "Exit"
@@ -80,7 +66,7 @@ function EvalScoop {
         } elseif ($status.scoop_update) {
             $State = "scoop_update"
         } elseif ($status.app_updates) {
-            $State = "app_update"
+            $State = "app_updates"
         }
     } else {
         $State = "up_to_date"
