@@ -61,7 +61,7 @@ $MenuItemExit.add_Click({
 function GetScoopStatus {
     $status = @{}
     $status_command ="scoop status"
-    $status_output = Invoke-Expression $status_command
+    & { Invoke-Expression $status_command } *>&1 | Tee-Object -Variable status_output
 
     $status.scoop_update = $status_output -match "Scoop is out of date"
     $status.app_updates = $status_output -match "Updates are available for:"
