@@ -28,7 +28,7 @@ $TimerScoop.start()
 
 $MenuItemStatus.Text = "Status..."
 $MenuItemStatus.add_Click({
-    Start-Process "cmd" -ArgumentList "/c scoop status * && pause"
+    Start-Process "cmd" -ArgumentList "/c scoop status && pause"
 })
 
 $MenuItemUpdate.Text = "Update..."
@@ -45,8 +45,11 @@ $MenuItemExit.add_Click({
 })
 
 function GetScoopStatus {
+    $update_command = "scoop update"
+    Invoke-Expression $update_command
+
     $status = @{}
-    $status_command ="scoop status"
+    $status_command = "scoop status"
     & { Invoke-Expression $status_command } *>&1 | Tee-Object -Variable status_output
 
     $status.scoop_update = $status_output -match "Scoop is out of date"
