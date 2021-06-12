@@ -13,59 +13,70 @@ $TimerScoop = New-Object System.Windows.Forms.Timer
 $IconUpToDate = New-Object System.Drawing.Icon("$PSScriptRoot\up-to-date.ico")
 $IconUpdatesAvailable = New-Object System.Drawing.Icon("$PSScriptRoot\updates-available.ico")
 
-$MainForm.ShowInTaskbar = $False
-$MainForm.WindowState = "minimized"
+function Initialize-Tray () {
+    $MainForm.ShowInTaskbar = $False
+    $MainForm.WindowState = "minimized"
+    
+    $NotifyIcon.Icon = $IconUpToDate
+    $NotifyIcon.ContextMenu = $ContextMenu
+    $NotifyIcon.contextMenu.MenuItems.Add("-");
+    $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemStatus)
+    $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemUpdate)
+    $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemCleanup)
+    $NotifyIcon.contextMenu.MenuItems.Add("-");
+    $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemExit)
+    $NotifyIcon.Visible = $True
+    
+    $TimerScoop.Interval = 1800000  # (30 min)
+    $TimerScoop.add_Tick({Eval-Scoop})
+    $TimerScoop.start()
 
-$NotifyIcon.Icon = $IconUpToDate
-$NotifyIcon.ContextMenu = $ContextMenu
-$NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemStatus)
-$NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemUpdate)
-$NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemCleanup)
-$NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemExit)
-$NotifyIcon.Visible = $True
+    $MenuItemStatus.Text = "Status..."
+    $MenuItemStatus.add_Click({
+        Start-Process "cmd" -ArgumentList "/c scoop status * && pause"
+    })
+    
+    $MenuItemUpdate.Text = "Update..."
+    $MenuItemUpdate.add_Click({
+        Start-Process "cmd" -ArgumentList "/c scoop update && scoop update * && pause" -Wait
+        Write-Host "Update done, refreshing status"
+        Update-Scoop-Status
+    })
+    
+    $MenuItemCleanup.Text = "Cleanup..."
+    $MenuItemCleanup.add_Click({
+        Start-Process "cmd" -ArgumentList "/c scoop cleanup * -k && pause"
+    })
+    
+    $MenuItemExit.Text = "Exit"
+    $MenuItemExit.add_Click({
+        $TimerScoop.stop()
+        $NotifyIcon.Visible = $False
+        $MainForm.close()
+    })
+}
 
-$TimerScoop.Interval = 1800000  # (30 min)
-$TimerScoop.add_Tick({EvalScoop})
-$TimerScoop.start()
-
-$MenuItemStatus.Text = "Status..."
-$MenuItemStatus.add_Click({
-    Start-Process "cmd" -ArgumentList "/c scoop status && pause"
-})
-
-$MenuItemUpdate.Text = "Update..."
-$MenuItemUpdate.add_Click({
-    Start-Process "cmd" -ArgumentList "/c scoop update && scoop update * && pause"
-})
-
-$MenuItemCleanup.Text = "Cleanup..."
-$MenuItemCleanup.add_Click({
-    Start-Process "cmd" -ArgumentList "/c scoop cleanup * -k && pause"
-})
-
-$MenuItemExit.Text = "Exit"
-$MenuItemExit.add_Click({
-    $TimerScoop.stop()
-    $NotifyIcon.Visible = $False
-    $MainForm.close()
-})
-
-function GetScoopStatus {
+function Get-Scoop-Status () {
+    Write-Host "Running `scoop update`..."
     $update_command = "scoop update"
     Invoke-Expression $update_command
 
     $status = @{}
-    $status_command = "scoop status"
-    & { Invoke-Expression $status_command } *>&1 | Tee-Object -Variable status_output
 
+    Write-Host "Running `scoop status`..."
+    $status_command ="scoop status"
+    & { Invoke-Expression $status_command } *>&1 | Tee-Object -Variable status_output
     $status.scoop_update = $status_output -match "Scoop is out of date"
     $status.app_updates = $status_output -match "Updates are available for:"
+    Write-Host $status_output
+
     return $status
 }
 
-function EvalScoop {
+function Update-Scoop-Status () {
     $old_state = $State
-    $status = GetScoopStatus
+
+    $status = Get-Scoop-Status
 
     # eval state
     if ($status.scoop_update -or $status.app_updates) {
@@ -108,5 +119,6 @@ function EvalScoop {
     }
 }
 
-EvalScoop
+Initialize-Tray
+Update-Scoop-Status
 [void][System.Windows.Forms.Application]::Run($MainForm)
