@@ -7,6 +7,7 @@ $NotifyIcon = New-Object System.Windows.Forms.NotifyIcon
 $ContextMenu = New-Object System.Windows.Forms.ContextMenu
 $MenuItemStatus = New-Object System.Windows.Forms.MenuItem
 $MenuItemUpdate = New-Object System.Windows.Forms.MenuItem
+$MenuItemCleanup = New-Object System.Windows.Forms.MenuItem
 $MenuItemExit = New-Object System.Windows.Forms.MenuItem
 $TimerScoop = New-Object System.Windows.Forms.Timer
 $IconUpToDate = New-Object System.Drawing.Icon("$PSScriptRoot\up-to-date.ico")
@@ -19,6 +20,7 @@ $NotifyIcon.Icon = $IconUpToDate
 $NotifyIcon.ContextMenu = $ContextMenu
 $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemStatus)
 $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemUpdate)
+$NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemCleanup)
 $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemExit)
 $NotifyIcon.Visible = $True
 
@@ -32,9 +34,13 @@ $MenuItemStatus.add_Click({
 })
 
 $MenuItemUpdate.Text = "Update..."
-$MenuItemUpdate.Enabled = $False
 $MenuItemUpdate.add_Click({
     Start-Process "cmd" -ArgumentList "/c scoop update && scoop update * && pause"
+})
+
+$MenuItemCleanup.Text = "Cleanup..."
+$MenuItemCleanup.add_Click({
+    Start-Process "cmd" -ArgumentList "/c scoop cleanup * -k && pause"
 })
 
 $MenuItemExit.Text = "Exit"
@@ -79,7 +85,6 @@ function EvalScoop {
     if ($old_state -ne $State) {
         switch ($State) {
             "up_to_date" {
-                $MenuItemUpdate.Enabled = $False
                 $NotifyIcon.Text = "Scoop: Everything ok!"
                 $NotifyIcon.Icon = $IconUpToDate
             }
@@ -96,7 +101,6 @@ function EvalScoop {
                     }
         
                 }
-                $MenuItemUpdate.Enabled = $True
                 $NotifyIcon.Icon = $IconUpdatesAvailable
                 $NotifyIcon.ShowBalloonTip(30000,"Attention","There are updates available via scoop!",[system.windows.forms.ToolTipIcon]"Info")
             }
