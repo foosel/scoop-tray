@@ -5,6 +5,7 @@ $State = "unknown"
 $MainForm = New-Object System.Windows.Forms.form
 $NotifyIcon = New-Object System.Windows.Forms.NotifyIcon
 $ContextMenu = New-Object System.Windows.Forms.ContextMenu
+$MenuItemCheckNow = New-Object System.Windows.Forms.MenuItem
 $MenuItemStatus = New-Object System.Windows.Forms.MenuItem
 $MenuItemUpdate = New-Object System.Windows.Forms.MenuItem
 $MenuItemCleanup = New-Object System.Windows.Forms.MenuItem
@@ -19,6 +20,7 @@ function Initialize-Tray () {
     
     $NotifyIcon.Icon = $IconUpToDate
     $NotifyIcon.ContextMenu = $ContextMenu
+    $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemCheckNow)
     $NotifyIcon.contextMenu.MenuItems.Add("-");
     $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemStatus)
     $NotifyIcon.contextMenu.MenuItems.AddRange($MenuItemUpdate)
@@ -31,6 +33,11 @@ function Initialize-Tray () {
     $TimerScoop.add_Tick({Eval-Scoop})
     $TimerScoop.start()
 
+    $MenuItemCheckNow.Text = "Check now"
+    $MenuItemCheckNow.add_Click({
+        Update-Scoop-Status
+    })
+    
     $MenuItemStatus.Text = "Status..."
     $MenuItemStatus.add_Click({
         Start-Process "cmd" -ArgumentList "/c scoop status * && pause"
