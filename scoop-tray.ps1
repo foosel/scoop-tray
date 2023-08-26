@@ -9,6 +9,7 @@ $MenuItemCheckNow = New-Object System.Windows.Forms.MenuItem
 $MenuItemStatus = New-Object System.Windows.Forms.MenuItem
 $MenuItemUpdate = New-Object System.Windows.Forms.MenuItem
 $MenuItemCleanup = New-Object System.Windows.Forms.MenuItem
+$MenuItemCache = New-Object System.Windows.Forms.MenuItem
 $MenuItemExit = New-Object System.Windows.Forms.MenuItem
 $TimerScoop = New-Object System.Windows.Forms.Timer
 $IconUpToDate = New-Object System.Drawing.Icon("$PSScriptRoot\up-to-date.ico")
@@ -53,6 +54,11 @@ function Initialize-Tray () {
     $MenuItemCleanup.Text = "Cleanup..."
     $MenuItemCleanup.add_Click({
         Start-Process "cmd" -ArgumentList "/c scoop cleanup * -k && pause"
+    })
+
+    $MenuItemCache.Text = "Remove cache..."
+    $MenuItemCache.add_Click({
+        Start-Process "cmd" -ArgumentList "/c scoop cache rm * -k && pause"
     })
     
     $MenuItemExit.Text = "Exit"
